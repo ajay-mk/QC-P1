@@ -27,6 +27,7 @@ public:
     //void rotate (double phi);
     double bond_angle (int a, int b, int c);
     void ba_matrix();
+//    void oop_angles(int a, int b, int c);
 //    void torsion (int a, int b, int c, int d);
     Eigen::Vector3d unit_vector(int a, int b);
     Eigen::Vector3d find_com();
