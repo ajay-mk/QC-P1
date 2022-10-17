@@ -15,17 +15,11 @@ int main(int argc , char* argv[]) {
         cout << "Printing Molecular Geometry:" << endl;
         mol.print_geometry();
         cout << endl;
-        //mol.distance_matrix();
-        //mol.translate(2,2,2);
-        //mol.ba_matrix();
-        mol.find_com();
-        cout << endl;
-        mol.compute_inertia_tensor();
-        cout << endl;
-        mol.moment_of_inertia();
 
+        // Hartree-Fock
 
-
+        //Inertia Tensor calculation needs debugging
+        //Something is wrong while translating molecule to CoM --> Check
 
     return 0;
 }

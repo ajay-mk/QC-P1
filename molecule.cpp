@@ -119,7 +119,6 @@ void Molecule::ba_matrix()
             }
         }
     }
-
 }
 
 Eigen::Vector3d Molecule::find_com()
@@ -143,13 +142,14 @@ Eigen::MatrixXd Molecule::compute_inertia_tensor()
     inertia_tensor.resize(3,3);
     for(int i = 0; i < natoms; i++){
         //Diagonal Elements
-        inertia_tensor(0,0) += mass[atoms[i].Z] * (pow(atoms[i].y,2)+pow(atoms[i].z,2));
-        inertia_tensor(1,1) += mass[atoms[i].Z] * (pow(atoms[i].x,2)+pow(atoms[i].z,2));
-        inertia_tensor(2,2) += mass[atoms[i].Z] * (pow(atoms[i].x,2)+pow(atoms[i].y,2));
+        inertia_tensor(0,0) += mass[atoms[i].Z] * (pow(atoms[i].y,2) + pow(atoms[i].z,2));
+        //cout << atoms[i].z << endl;
+        inertia_tensor(1,1) += mass[atoms[i].Z] * (pow(atoms[i].x,2) + pow(atoms[i].z,2));
+        inertia_tensor(2,2) += mass[atoms[i].Z] * (pow(atoms[i].x,2) + pow(atoms[i].y,2));
         //Off-Diagonal Elements
-        inertia_tensor(0,1) += mass[atoms[i].Z] * atoms[i].x * atoms[i].y;
-        inertia_tensor(0,2) += mass[atoms[i].Z] * atoms[i].x * atoms[i].z;
-        inertia_tensor(1,2) += mass[atoms[i].Z] * atoms[i].y * atoms[i].z;
+        inertia_tensor(0,1) = -mass[atoms[i].Z] * atoms[i].x * atoms[i].y;
+        inertia_tensor(0,2) = -mass[atoms[i].Z] * atoms[i].x * atoms[i].z;
+        inertia_tensor(1,2) = -mass[atoms[i].Z] * atoms[i].y * atoms[i].z;
     }
     // Since Inertia Tensor is symmetric
     inertia_tensor(1, 0) = inertia_tensor(0,1);
