@@ -22,6 +22,9 @@ Molecule::Molecule(const std::string filename){
     for(int i=0; i < natoms; i++) {
         // Storing coordinates into vector
         input >> atoms[i].Z >> atoms[i].x >> atoms[i].y >> atoms[i].z;
+    }
+    for(int i=0; i < natoms; i++)
+    {
         // Calculating number of electrons
         nelectrons += atoms[i].Z;
         // Calculating molecular mass
@@ -53,21 +56,18 @@ double Molecule::bond_length(int i, int j) {
     return bl;
 }
 
-void Molecule::bond_matrix()
+void Molecule::distance_matrix()
 {
-    cout << "Bond Lengths" << endl;
-    printf("i\tj\tBond Length");
-    bonds.resize(natoms, natoms);
+    cout << "Interatomic Distances" << endl;
+    printf("i\tj\tDistance\n");
+    //bonds.resize(natoms, natoms);
     for(int i=0; i < natoms; i++){
-        for(int j = 0; j < natoms; j++){
-            bonds(i, j) = Molecule::bond_length(i, j);
-            if(bonds(i, j) < 4){
+        for(int j = 0; j < i; j++){
             // There are two ways two print this, print atomic numbers or indices
             //printf("%d\t%d\t%4.5f\n", atoms[i].Z, atoms[j].Z, bonds(i,j));
-            printf("%d\t%d\t%4.5f\n", i, j, bonds(i,j));
+            printf("%d\t%d\t%4.5f\n", i, j, bond_length(i, j));
             }
         }
-    }
     //cout << "Bond Length Matrix" << endl;
     //cout << bonds << endl;
 }
@@ -111,6 +111,7 @@ void Molecule::ba_matrix()
             for(int k=0; k < j; k++)
             {
                 // There are two ways two print this, print atomic numbers or indices
+                if(bond_length(i, j) < 4 && bond_length(j,k) < 4)
                 printf("%d\t%d\t%d\t%4.5f\n", i, j, k, bond_angle(i, j, k));
                 //printf("%d\t%d\t%d\t%4.5f\n", atoms[i].Z, atoms[j].Z, atoms[k].Z, bond_angle(i, j, k));
             }
@@ -133,4 +134,35 @@ Eigen::Vector3d Molecule::find_com()
     com = {Nr_x/mol_mass, Nr_y/mol_mass, Nr_z/mol_mass};
     printf("Center of mass coordinates: (%4.5f, %4.5f, %4.5f)\n", com(0), com(1), com(2));
     return com;
+}
+
+Eigen::MatrixXd Molecule::compute_inertia_tensor()
+{
+    inertia_tensor.resize(3,3);
+    for(int i = 0; i < natoms; i++){
+        //Diagonal Elements
+        inertia_tensor(0,0) =+ mass[atoms[i].Z] * (pow(atoms[i].y,2)+pow(atoms[i].z,2));
+        inertia_tensor(1,1) =+ mass[atoms[i].Z] * (pow(atoms[i].x,2)+pow(atoms[i].z,2));
+        inertia_tensor(2,2) =+ mass[atoms[i].Z] * (pow(atoms[i].x,2)+pow(atoms[i].y,2));
+        //Off-Diagonal Elements
+        inertia_tensor(0,1) =+ mass[atoms[i].Z] * atoms[i].x * atoms[i].y;
+        inertia_tensor(0,2) =+ mass[atoms[i].Z] * atoms[i].x * atoms[i].z;
+        inertia_tensor(1,2) =+ mass[atoms[i].Z] * atoms[i].y * atoms[i].z;
+    }
+    // Since Inertia Tensor is symmetric
+    inertia_tensor(1, 0) = inertia_tensor(0,1);
+    inertia_tensor(2, 0) = inertia_tensor(0,2);
+    inertia_tensor(2, 1) = inertia_tensor(1,2);
+    cout << "Moment of Inertia Tensor" << endl << endl;
+    cout << inertia_tensor << endl;
+    return inertia_tensor;
+}
+
+void Molecule::moment_of_inertia()
+{
+    Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> solver(inertia_tensor);
+    Eigen::MatrixXd evals = solver.eigenvalues();
+    Eigen::MatrixXd evecs = solver.eigenvectors();
+    cout << "Principal moments of inertia: " << endl;
+    cout << evals << endl;
 }

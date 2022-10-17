@@ -5,6 +5,7 @@
 #include <vector>
 #include <Eigen/Core>
 #include <Eigen/Dense>
+#include <Eigen/Eigenvalues>
 
 
 // A Struct for information regarding geometry
@@ -22,7 +23,7 @@ public:
     void print_info();
     void print_geometry();
     double bond_length(int a, int b);
-    void bond_matrix();
+    void distance_matrix();
     void translate (double x, double y, double z);
     //void rotate (double phi);
     double bond_angle (int a, int b, int c);
@@ -31,15 +32,17 @@ public:
 //    void torsion (int a, int b, int c, int d);
     Eigen::Vector3d unit_vector(int a, int b);
     Eigen::Vector3d find_com();
+    Eigen::MatrixXd compute_inertia_tensor();
+    void moment_of_inertia();
 
 private:
     int natoms;
     int total_charge;
+    double mol_mass;
+    double nelectrons;
     std::vector<Geom> atoms;
     Eigen::MatrixXd bonds;
-    double nelectrons;
     Eigen::Vector3d com;
-    double mol_mass;
-
+    Eigen::MatrixXd inertia_tensor;
 };
 
