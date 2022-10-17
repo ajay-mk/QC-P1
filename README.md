@@ -1,6 +1,6 @@
 # C++ Practice Project
 - Based on [Programming Projects by Crawford Group](https://github.com/CrawfordGroup/ProgrammingProjects)
-
+- Uses [Eigen](https://eigen.tuxfamily.org/index.php?title=Main_Page)
 
 ### Some functions of Molecule class
 - Reading and molecular geometry from file
