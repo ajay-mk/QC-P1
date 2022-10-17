@@ -133,7 +133,6 @@ Eigen::Vector3d Molecule::find_com()
         Nr_y += atoms[i].y * mass[atoms[i].Z];
         Nr_z += atoms[i].z * mass[atoms[i].Z];
     }
-
     com = {Nr_x/mol_mass, Nr_y/mol_mass, Nr_z/mol_mass};
     printf("Center of mass coordinates: (%4.5f, %4.5f, %4.5f)\n", com(0), com(1), com(2));
     return com;
