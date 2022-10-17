@@ -15,9 +15,9 @@ int main(int argc , char* argv[]) {
         cout << "Printing Molecular Geometry:" << endl;
         mol.print_geometry();
         cout << endl;
-        mol.distance_matrix();
+        //mol.distance_matrix();
         //mol.translate(2,2,2);
-        mol.ba_matrix();
+        //mol.ba_matrix();
         mol.find_com();
         cout << endl;
         mol.compute_inertia_tensor();

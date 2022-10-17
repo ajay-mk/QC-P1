@@ -23,6 +23,8 @@ Molecule::Molecule(const std::string filename){
         // Storing coordinates into vector
         input >> atoms[i].Z >> atoms[i].x >> atoms[i].y >> atoms[i].z;
     }
+    nelectrons = 0;
+    mol_mass = 0;
     for(int i=0; i < natoms; i++)
     {
         // Calculating number of electrons
@@ -127,9 +129,9 @@ Eigen::Vector3d Molecule::find_com()
     double Nr_x, Nr_y, Nr_z;
     for(int i =0; i < natoms; i++)
     {
-        Nr_x =+ atoms[i].x * mass[atoms[i].Z];
-        Nr_y =+ atoms[i].y * mass[atoms[i].Z];
-        Nr_z =+ atoms[i].z * mass[atoms[i].Z];
+        Nr_x += atoms[i].x * mass[atoms[i].Z];
+        Nr_y += atoms[i].y * mass[atoms[i].Z];
+        Nr_z += atoms[i].z * mass[atoms[i].Z];
     }
     com = {Nr_x/mol_mass, Nr_y/mol_mass, Nr_z/mol_mass};
     printf("Center of mass coordinates: (%4.5f, %4.5f, %4.5f)\n", com(0), com(1), com(2));
@@ -141,13 +143,13 @@ Eigen::MatrixXd Molecule::compute_inertia_tensor()
     inertia_tensor.resize(3,3);
     for(int i = 0; i < natoms; i++){
         //Diagonal Elements
-        inertia_tensor(0,0) =+ mass[atoms[i].Z] * (pow(atoms[i].y,2)+pow(atoms[i].z,2));
-        inertia_tensor(1,1) =+ mass[atoms[i].Z] * (pow(atoms[i].x,2)+pow(atoms[i].z,2));
-        inertia_tensor(2,2) =+ mass[atoms[i].Z] * (pow(atoms[i].x,2)+pow(atoms[i].y,2));
+        inertia_tensor(0,0) += mass[atoms[i].Z] * (pow(atoms[i].y,2)+pow(atoms[i].z,2));
+        inertia_tensor(1,1) += mass[atoms[i].Z] * (pow(atoms[i].x,2)+pow(atoms[i].z,2));
+        inertia_tensor(2,2) += mass[atoms[i].Z] * (pow(atoms[i].x,2)+pow(atoms[i].y,2));
         //Off-Diagonal Elements
-        inertia_tensor(0,1) =+ mass[atoms[i].Z] * atoms[i].x * atoms[i].y;
-        inertia_tensor(0,2) =+ mass[atoms[i].Z] * atoms[i].x * atoms[i].z;
-        inertia_tensor(1,2) =+ mass[atoms[i].Z] * atoms[i].y * atoms[i].z;
+        inertia_tensor(0,1) += mass[atoms[i].Z] * atoms[i].x * atoms[i].y;
+        inertia_tensor(0,2) += mass[atoms[i].Z] * atoms[i].x * atoms[i].z;
+        inertia_tensor(1,2) += mass[atoms[i].Z] * atoms[i].y * atoms[i].z;
     }
     // Since Inertia Tensor is symmetric
     inertia_tensor(1, 0) = inertia_tensor(0,1);
