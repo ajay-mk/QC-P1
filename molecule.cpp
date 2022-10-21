@@ -23,15 +23,28 @@ Molecule::Molecule(const std::string filename){
         // Storing coordinates into vector
         input >> atoms[i].Z >> atoms[i].x >> atoms[i].y >> atoms[i].z;
     }
-    nelectrons = 0;
-    mol_mass = 0;
+}
+
+int Molecule::nelectrons()
+{
+    auto n =0;
     for(int i=0; i < natoms; i++)
     {
         // Calculating number of electrons
-        nelectrons += atoms[i].Z;
+        n += atoms[i].Z;
+    }
+    return n;
+}
+
+double Molecule::calc_mol_mass()
+{
+    mol_mass = 0;
+    for(int i=0; i < natoms; i++)
+    {
         // Calculating molecular mass
         mol_mass += mass[atoms[i].Z];
     }
+    return mol_mass;
 }
 
 void Molecule::print_geometry()
@@ -41,14 +54,15 @@ void Molecule::print_geometry()
     {
         printf("%d\t%4.10f\t%4.10f\t%4.10f\n", atoms[i].Z, atoms[i].x, atoms[i].y, atoms[i].z);
     }
+    cout << endl;
 }
 
 void Molecule::print_info()
 {
     cout << endl;
     cout << "Number of atoms: " << natoms<< endl;
-    cout << "Number of electrons: " << nelectrons << endl;
-    cout << "Molecular Mass: " << mol_mass << " amu" << endl;
+    cout << "Number of electrons: " << nelectrons() << endl;
+    cout << "Molecular Mass: " << calc_mol_mass() << " amu" << endl;
 }
 
 double Molecule::bond_length(int i, int j) {

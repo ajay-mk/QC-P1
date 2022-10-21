@@ -34,15 +34,17 @@ public:
     Eigen::Vector3d find_com();
     Eigen::MatrixXd compute_inertia_tensor();
     void moment_of_inertia();
+    int nelectrons();
+    double calc_mol_mass();
 
 private:
     int natoms;
     int total_charge;
     double mol_mass;
-    double nelectrons;
     std::vector<Geom> atoms;
     Eigen::MatrixXd bonds;
     Eigen::Vector3d com;
     Eigen::MatrixXd inertia_tensor;
+
 };
 
