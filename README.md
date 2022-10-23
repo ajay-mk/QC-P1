@@ -8,3 +8,5 @@
 - Calculating bond lengths and bond angles (Torsional angles and out-of-plane angles will be added soon)
 - Computes the center of mass of the molecule
 - Computes moment of inertia tensor of the molecule
+
+- Working of Hartree-Fock

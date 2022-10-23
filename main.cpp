@@ -18,6 +18,7 @@ int main(int argc , char* argv[]) {
 
         //Inertia Tensor calculation needs debugging
         //Something is wrong while translating molecule to CoM --> Check
+        // Should refine the code --> Check the variable definitions
 
     return 0;
 }

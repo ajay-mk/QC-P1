@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <array>
 #include "Eigen/Eigen"
 #include "Eigen/Dense"
 #include "Eigen/Eigenvalues"
@@ -12,12 +13,9 @@ public:
     Eigen::MatrixXd read_1e_ints(std::string int_path, std::string int_file);
     Eigen::MatrixXd read_2e_ints(std::string int_path, std::string int_file);
     Eigen::MatrixXd S;
-    int count_lines(std::string filname);
-    int nbasis;
 
 
 private:
-    double enuc;
     double nelectrons;
 
 };
