@@ -12,6 +12,7 @@ public:
     Eigen::MatrixXd read_1e_ints(std::string int_path, std::string int_file);
     Eigen::MatrixXd read_2e_ints(std::string int_path, std::string int_file);
     Eigen::MatrixXd S;
+    double hf_energy;
 
 
 private:

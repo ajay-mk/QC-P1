@@ -30,7 +30,7 @@ hartree_fock::hartree_fock(std::string filename, std::string int_path){
 
     // Reading Nuclear Repulsion
     double enuc  = read_enuc(int_path);
-    cout << "----Nuclear repulsion energy----" << enuc  << endl << endl;
+    cout << "----Nuclear repulsion energy----" << endl << enuc  << endl << endl;
     // Reading 1e integrals
     Eigen::Matrix<double, nao, nao> S = read_1e_ints(int_path, "/overlap.dat");
     cout << "----Overlap Integrals----" << endl << S << endl;
@@ -39,7 +39,7 @@ hartree_fock::hartree_fock(std::string filename, std::string int_path){
     cout << "----Kinetic Energy Integrals----" << endl << T << endl;
     cout << endl;
     Eigen::Matrix<double, nao, nao> V = read_1e_ints(int_path, "/v.dat");
-    cout << "----Nuclear Attraction Integral----" << endl << V << endl;
+    cout << "----Nuclear Attraction Integrals----" << endl << V << endl;
     cout << endl;
     // Forming Core Hamiltonian
     Eigen::Matrix<double, nao, nao> H = T + V;
@@ -48,6 +48,51 @@ hartree_fock::hartree_fock(std::string filename, std::string int_path){
 
     // Reading 2-e integral
     Eigen::MatrixXd two_e = read_2e_ints(int_path, "/eri.dat");
+
+    // Diagonalizing Overlap Matrix
+    Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> solver1(S);
+    auto S_evals_c = solver1.eigenvalues();
+    auto S_evecs = solver1.eigenvectors(); //lambda_S
+
+    // S_evals is a column matrix, we need to build a diagonal matrix with its elements
+    Eigen::MatrixXd S_evals = Eigen::MatrixXd ::Zero(S.rows(), S.rows()); //L_S
+    for (int i =0; i < S.rows(); i++)
+    {
+        for (int j = 0; j < S.rows(); j++)
+        {
+            if(i==j)
+                S_evals(i, i) = S_evals_c(i);
+        }
+    }
+
+    // Building Symmetric Orthogonolization Matrix
+    for (int i=0; i < S.rows(); i++)
+    {
+        S_evals(i, i) = pow(S_evals(i, i), -0.5); // Square root of S_evals
+    }
+    auto SOM = S_evecs * S_evals * S_evecs.transpose();
+    cout << "----Symmetric Orthogonalization Matrix----" << endl;
+    cout << SOM << endl;
+
+    cout << endl;
+
+    // Building Initial Fock Matrix - Using Core Hamiltonian
+    auto F0 = SOM.transpose() * H * SOM ;
+    cout << "----Initial Fock Matrix----" << endl;
+    cout << F0 << endl;
+
+    // Diagonalizing Initial Fock Matrix
+    Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> solver2(F0);
+    auto C0_ = solver2.eigenvectors();
+    auto eps = solver2.eigenvalues(); // Initial Orbital Energy
+
+    // Transformation of Eigenvectors into original AO basis
+    auto C0 = SOM * C0_;
+    cout << endl;
+    cout << "----Initial Coefficient Matrix----" << endl;
+    cout << C0 << endl;
+
+
 }
 
 double hartree_fock::read_enuc(std::string int_path)
