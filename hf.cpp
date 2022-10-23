@@ -22,7 +22,7 @@ int CompoundIndex(int a, int b) {
         ab = (b * (b + 1) / 2) + a;
     return ab;
 }
-
+// Main Hartree-Fock Function
 hartree_fock::hartree_fock(std::string filename, std::string int_path){
     Molecule mol(filename);
     mol.print_info();
@@ -30,25 +30,24 @@ hartree_fock::hartree_fock(std::string filename, std::string int_path){
 
     // Reading Nuclear Repulsion
     double enuc  = read_enuc(int_path);
-    cout << "Nuclear repulsion energy: " << enuc  << endl << endl;
+    cout << "----Nuclear repulsion energy----" << enuc  << endl << endl;
     // Reading 1e integrals
     Eigen::Matrix<double, nao, nao> S = read_1e_ints(int_path, "/overlap.dat");
-    cout << "Overlap Integrals" << endl << S << endl;
+    cout << "----Overlap Integrals----" << endl << S << endl;
     cout << endl;
     Eigen::Matrix<double, nao, nao> T = read_1e_ints(int_path, "/ke.dat");
-    cout << "Kinetic Energy Integrals" << endl << T << endl;
+    cout << "----Kinetic Energy Integrals----" << endl << T << endl;
     cout << endl;
     Eigen::Matrix<double, nao, nao> V = read_1e_ints(int_path, "/v.dat");
-    cout << "Nuclear Attraction Integral" << endl << V << endl;
+    cout << "----Nuclear Attraction Integral----" << endl << V << endl;
     cout << endl;
     // Forming Core Hamiltonian
     Eigen::Matrix<double, nao, nao> H = T + V;
-    cout << "Core Hamiltonian" << endl << H << endl;
+    cout << "----Core Hamiltonian----" << endl << H << endl;
     cout << endl;
 
     // Reading 2-e integral
     Eigen::MatrixXd two_e = read_2e_ints(int_path, "/eri.dat");
-    cout << two_e << endl;
 }
 
 double hartree_fock::read_enuc(std::string int_path)
