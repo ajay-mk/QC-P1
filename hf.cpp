@@ -2,6 +2,7 @@
 // Integrals are read from external files in this version
 #include "hf.h"
 #include "molecule.h"
+#include "general.h"
 #include <string>
 #include <fstream>
 #include "Eigen/Eigenvalues"
@@ -36,7 +37,8 @@ hartree_fock::hartree_fock(std::string input, const std::string int_path){
 
     // Reading Nuclear Repulsion
     double enuc  = read_enuc(int_path);
-    cout << "----Nuclear repulsion energy----" << endl << enuc  << endl << endl;
+    cout << "----Nuclear repulsion energy----" << endl << enuc << " Eh" <<  endl << endl;
+
     // Reading 1e integrals
     Eigen::Matrix<double, nao, nao> S = read_1e_ints(int_path, "/overlap.dat");
     cout << "----Overlap Integrals----" << endl << S << endl;
@@ -152,12 +154,12 @@ double hartree_fock::read_enuc(std::string int_path)
 {
     std::string file_path = int_path + "/enuc.dat";
     std::ifstream enuc_file(file_path);
-    double enuc;
+    double num;
     if (enuc_file.is_open())
-        enuc_file >> enuc;
+        enuc_file >> num;
     else
         cout << "Unable to open enuc.dat" << endl;
-    return enuc;
+    return num;
 }
 
 Eigen::MatrixXd hartree_fock::read_1e_ints(std::string int_path, std::string int_file)
@@ -196,3 +198,4 @@ Eigen::MatrixXd hartree_fock::read_2e_ints(std::string int_path, std::string int
     }
     return two_e;
 }
+

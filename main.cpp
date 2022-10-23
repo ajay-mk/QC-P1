@@ -1,6 +1,7 @@
 #include <iostream>
 #include "molecule.h"
 #include "hf.h"
+#include "general.h"
 
 using std::cout, std::endl;
 
