@@ -14,12 +14,6 @@ int main(int argc , char* argv[]) {
         // Hartree-Fock
         hartree_fock calc_hf (filename, int_path);
 
-
-
-        //Inertia Tensor calculation needs debugging
-        //Something is wrong while translating molecule to CoM --> Check
-        // Should refine the code --> Check the variable definitions
-
     return 0;
 }
 }
