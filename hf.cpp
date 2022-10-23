@@ -57,6 +57,10 @@ hartree_fock::hartree_fock(std::string input, const std::string int_path){
     // Reading 2-e integral
     Eigen::MatrixXd two_e = read_2e_ints(int_path, "/eri.dat");
 
+    // Should Convert Diagonalization to a function
+//    Eigen::Matrix<double, S.rows(), S.rows()> S_evals, S_evecs;
+//    Diag2(S, S_evals, S_evecs);
+
     // Diagonalizing Overlap Matrix
     Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> solver1(S);
     auto S_evals_c = solver1.eigenvalues();
