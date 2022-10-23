@@ -4,8 +4,6 @@
 #include "molecule.h"
 #include <string>
 #include <fstream>
-#include "Eigen/Eigen"
-#include "Eigen/Dense"
 #include "Eigen/Eigenvalues"
 
 using std::cout, std::endl;
@@ -23,13 +21,12 @@ int CompoundIndex(int a, int b) {
     return ab;
 }
 // Main Hartree-Fock Function
-hartree_fock::hartree_fock(std::string filename, std::string int_path){
-    Molecule mol(filename);
+hartree_fock::hartree_fock(std::string input, const std::string int_path){
+    Molecule mol(input);
     mol.print_info();
     int nocc = mol.nelectrons()/2;
     cout << "Number of occupied states: " << nocc << endl;
     mol.print_geometry();
-
 
     // Reading Nuclear Repulsion
     double enuc  = read_enuc(int_path);
