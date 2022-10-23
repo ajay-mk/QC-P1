@@ -7,6 +7,9 @@
 #include <Eigen/Dense>
 #include <Eigen/Eigenvalues>
 
+//Inertia Tensor calculation needs debugging
+//Something is wrong while translating molecule to CoM --> Check
+
 
 // A Struct for information regarding geometry
 // Contains atomic numbers and coordinates

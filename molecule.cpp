@@ -3,6 +3,9 @@
 #include <cmath>
 #include "mass.h"
 
+//Inertia Tensor calculation needs debugging
+//Something is wrong while translating molecule to CoM --> Check
+
 using std::cout, std::endl;
 
 // Defining molecule class
