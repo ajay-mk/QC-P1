@@ -20,6 +20,12 @@ int CompoundIndex(int a, int b) {
         ab = (b * (b + 1) / 2) + a;
     return ab;
 }
+
+// SCF Loop Parameters
+const int max_iter = 200;
+const double conv = 1e-12;
+
+
 // Main Hartree-Fock Function
 hartree_fock::hartree_fock(std::string input, const std::string int_path){
     Molecule mol(input);
@@ -119,7 +125,24 @@ hartree_fock::hartree_fock(std::string input, const std::string int_path){
     cout << "Initial electronic Energy: " << e_elec << " Eh" << endl;
     cout << "Initial SCF Energy: " << e_tot << " Eh" << endl;
 
+    // SCF Loop
 
+//    auto F = H;
+//    for (int iter = 1; iter < max_iter; iter++) {
+//        for (int i = 0; i < nao; i++) {
+//            for (int j = 0; j < nao; j++) {
+//                for (int k = 0; k < nao; k++) {
+//                    for (int l = 0; l < nao; l++) {
+//                        int ij = CompoundIndex(i, j);
+//                        int kl = CompoundIndex(k, l);
+//                        int ik = CompoundIndex(i, k);
+//                        int jl = CompoundIndex(j, l);
+//                        F(i, j) += D0(k, l) * (2 * two_e(CompoundIndex(ij, kl)) - two_e(CompoundIndex(ik, jl)));
+//                    }
+//                }
+//            }
+//        }
+//    }
 
 }
 
