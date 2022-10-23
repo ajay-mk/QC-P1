@@ -4,7 +4,6 @@
 #include "molecule.h"
 #include <string>
 #include <fstream>
-#include <array>
 #include "Eigen/Eigen"
 #include "Eigen/Dense"
 #include "Eigen/Eigenvalues"
@@ -15,13 +14,13 @@ using std::cout, std::endl;
 const int nao = 7;
 
 // Compound Indices
-int CompoundIndex(int i, int j) {
-    int ij;
-    if (i > j)
-        ij = i * (i + 1) / (2 + j);
+int CompoundIndex(int a, int b) {
+    int ab;
+    if (a > b)
+        ab = (a * (a + 1) / 2) + b;
     else
-        ij = j * (j + 1) / (2 + i);
-    return ij;
+        ab = (b * (b + 1) / 2) + a;
+    return ab;
 }
 
 hartree_fock::hartree_fock(std::string filename, std::string int_path){
@@ -87,18 +86,18 @@ Eigen::MatrixXd hartree_fock::read_2e_ints(std::string int_path, std::string int
     std::string filename = int_path + int_file;
     // Here we use the compound indices defined earlier
     // What will be the size of the matrix? num = M(M+1)/2; M = nao(nao+1)/2
-    int num = (((nao * (nao + 1) / 2) + 1) * (nao * (nao + 1) / 2)/2);
-    Eigen::MatrixXd two_e = Eigen::MatrixXd::Zero(1, num);
+    int M = nao * (nao + 1)/2;
+    int num = M * (M +1)/2;
+    Eigen::MatrixXd two_e = Eigen::MatrixXd::Zero(num, 1);
     std::ifstream int_input(filename);
     while(!int_input.eof())
     {
-        int mu, nu, lambda, sigma, mu_nu, lambda_sigma;
+        int i, j, k, l, ij, kl;
         double temp;
-        int_input >> mu >> nu >> lambda >> sigma >> temp;
-        mu_nu = CompoundIndex(mu, nu);
-        lambda_sigma = CompoundIndex(lambda, sigma);
-        int mu_nu_lambda_sigma = CompoundIndex(mu_nu, lambda_sigma);
-        two_e (0 , mu_nu_lambda_sigma) = temp;
+        int_input >> i >> j >> k >> l >> temp;
+        ij = CompoundIndex(i-1, j-1);
+        kl = CompoundIndex(k-1, l-1);
+        two_e (CompoundIndex(ij, kl), 0) = temp;
     }
     return two_e;
 }

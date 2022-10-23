@@ -1,6 +1,5 @@
 #include <iostream>
 #include <string>
-#include <array>
 #include "Eigen/Eigen"
 #include "Eigen/Dense"
 #include "Eigen/Eigenvalues"
