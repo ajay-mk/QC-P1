@@ -26,7 +26,10 @@ int CompoundIndex(int a, int b) {
 hartree_fock::hartree_fock(std::string filename, std::string int_path){
     Molecule mol(filename);
     mol.print_info();
+    int nocc = mol.nelectrons()/2;
+    cout << "Number of occupied states: " << nocc << endl;
     mol.print_geometry();
+
 
     // Reading Nuclear Repulsion
     double enuc  = read_enuc(int_path);
@@ -91,6 +94,34 @@ hartree_fock::hartree_fock(std::string filename, std::string int_path){
     cout << endl;
     cout << "----Initial Coefficient Matrix----" << endl;
     cout << C0 << endl;
+
+    // Building Initial Density Matrix
+    Eigen::MatrixXd D0 = Eigen::MatrixXd::Zero(nao, nao);
+    for(int i = 0; i < nao; i++){
+        for(int j =0; j < nao; j++){
+            // Sum over occupied orbitals
+            for(int m =0; m < nocc; m++){
+                D0(i, j) += C0(i, m) * C0(j, m);
+            }
+        }
+    }
+    cout << endl;
+    cout << "----Initial Density Matrix----" << endl;
+    cout << D0 << endl;
+
+    // Computing Initial SCF energy
+    double e_elec;
+    // Sum over all orbitals
+    for(int i=0; i < nao; i++){
+        for(int j=0; j < nao; j++){
+            e_elec += D0(i, j) * (H(i, j) + F0 (i, j));
+        }
+    }
+    double e_tot = e_elec + enuc ;
+    cout << endl;
+    cout << "Initial electronic Energy: " << e_elec << " Eh" << endl;
+    cout << "Initial SCF Energy: " << e_tot << " Eh" << endl;
+
 
 
 }
