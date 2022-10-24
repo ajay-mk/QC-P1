@@ -38,6 +38,8 @@ void Diag2(Eigen::MatrixXd M, Eigen::MatrixXd evals, Eigen::MatrixXd evecs) {
     }
 }
 
+
+
 // Function for counting number of lines in a file
 int count_lines(std::string filename)
 {
