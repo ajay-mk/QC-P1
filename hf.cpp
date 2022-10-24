@@ -23,15 +23,15 @@ int CompoundIndex(int a, int b) {
 }
 
 // SCF Loop Parameters
-const int max_iter = 200;
-const double conv = 1e-12;
+const int max_iter = 10;
+const double conv = 1e-10;
 
 
 // Main Hartree-Fock Function
 hartree_fock::hartree_fock(std::string input, const std::string int_path){
     Molecule mol(input);
     mol.print_info();
-    int nocc = mol.nelectrons()/2;
+    const int nocc = mol.nelectrons()/2;
     cout << "Number of occupied states: " << nocc << endl;
     mol.print_geometry();
 
@@ -50,34 +50,24 @@ hartree_fock::hartree_fock(std::string input, const std::string int_path){
     cout << "----Nuclear Attraction Integrals----" << endl << V << endl;
     cout << endl;
     // Forming Core Hamiltonian
-    Eigen::Matrix<double, nao, nao> H = T + V;
-    cout << "----Core Hamiltonian----" << endl << H << endl;
+    auto Hcore = T + V;
+    cout << "----Core Hamiltonian----" << endl << Hcore << endl;
     cout << endl;
 
     // Reading 2-e integral
     Eigen::MatrixXd two_e = read_2e_ints(int_path, "/eri.dat");
 
-    // Should Convert Diagonalization to a function
-//    Eigen::Matrix<double, S.rows(), S.rows()> S_evals, S_evecs;
-//    Diag2(S, S_evals, S_evecs);
+    // INPUT READING COMPLETE
 
-    // Diagonalizing Overlap Matrix
-    Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> solver1(S);
-    auto S_evals_c = solver1.eigenvalues();
-    auto S_evecs = solver1.eigenvectors(); //lambda_S
+    // STARTING CALCULATIONS
 
-    // S_evals is a column matrix, we need to build a diagonal matrix with its elements
-    Eigen::MatrixXd S_evals = Eigen::MatrixXd ::Zero(S.rows(), S.rows()); //L_S
-    for (int i =0; i < S.rows(); i++)
-    {
-        for (int j = 0; j < S.rows(); j++)
-        {
-            if(i==j)
-                S_evals(i, i) = S_evals_c(i);
-        }
-    }
+    // Diagonalizing S
+    hartree_fock::diag_results S_Diag;
+    S_Diag = Diag_M(S, S_Diag);
+    auto S_evecs = S_Diag.evecs;
+    auto S_evals = S_Diag.evals;
 
-    // Building Symmetric Orthogonolization Matrix
+    // Building and Printing Symmetric Orthogonolization Matrix
     for (int i=0; i < S.rows(); i++)
     {
         S_evals(i, i) = pow(S_evals(i, i), -0.5); // Square root of S_evals
@@ -85,72 +75,105 @@ hartree_fock::hartree_fock(std::string input, const std::string int_path){
     auto SOM = S_evecs * S_evals * S_evecs.transpose();
     cout << "----Symmetric Orthogonalization Matrix----" << endl;
     cout << SOM << endl;
-
     cout << endl;
 
-    // Building Initial Fock Matrix - Using Core Hamiltonian
-    auto F0 = SOM.transpose() * H * SOM ;
+    // Building and Printing Initial Fock Matrix - Using Core Hamiltonian
+    auto F_initial = SOM.transpose() * Hcore * SOM ;
     cout << "----Initial Fock Matrix----" << endl;
-    cout << F0 << endl;
+    cout << F_initial << endl;
 
-    // Diagonalizing Initial Fock Matrix
-    Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> solver2(F0);
-    auto C0_ = solver2.eigenvectors();
-    auto eps = solver2.eigenvalues(); // Initial Orbital Energy
+    //Diagonalizing Initial Fock Matrix
+    hartree_fock::diag_results F_Diag;
+    F_Diag = Diag(F_initial, F_Diag);
+    auto C0_ = F_Diag.evecs;
+    auto eps = F_Diag.evals;
 
     // Transformation of Eigenvectors into original AO basis
-    auto C0 = SOM * C0_;
+    auto C = SOM * C0_;
     cout << endl;
     cout << "----Initial Coefficient Matrix----" << endl;
-    cout << C0 << endl;
+    cout << C << endl;
 
-    // Building Initial Density Matrix
-    Eigen::MatrixXd D0 = Eigen::MatrixXd::Zero(nao, nao);
-    for(int i = 0; i < nao; i++){
-        for(int j =0; j < nao; j++){
-            // Sum over occupied orbitals
-            for(int m =0; m < nocc; m++){
-                D0(i, j) += C0(i, m) * C0(j, m);
-            }
-        }
-    }
+    // Building and Printing Initial Density Matrix
+    Eigen::MatrixXd D = build_density(C, nocc);
     cout << endl;
     cout << "----Initial Density Matrix----" << endl;
-    cout << D0 << endl;
+    cout << D << endl;
 
     // Computing Initial SCF energy
-    double e_elec;
-    // Sum over all orbitals
-    for(int i=0; i < nao; i++){
-        for(int j=0; j < nao; j++){
-            e_elec += D0(i, j) * (H(i, j) + F0 (i, j));
-        }
-    }
-    double e_tot = e_elec + enuc ;
+    double e_hf = scf_energy(D, Hcore, F_initial);
+
+    double e_tot = e_hf + enuc ;
     cout << endl;
-    cout << "Initial electronic Energy: " << e_elec << " Eh" << endl;
+    cout << "Initial electronic Energy: " << e_hf << " Eh" << endl;
     cout << "Initial SCF Energy: " << e_tot << " Eh" << endl;
 
-    // SCF Loop
+//    do {
+//        auto D_old = D_n;
+//        e_last = e_hf;
+//        ++iter;
+//        auto F_n = fock_build(Hcore, D, two_e);
+//
+//        F_n = SOM.transpose() * F_n * SOM;
+//
+//        Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> solver2(F_n);
+//        auto C_n = solver2.eigenvectors();
+//        auto eps_n = solver2.eigenvalues();
+//
+//        auto C = SOM * C_n;
+//
+//        auto D = build_density(C, nocc);
+//
+//        e_hf = scf_energy(D, Hcore, F_n);
+//        cout << "Iter " << iter << endl;
+//        cout << e_hf << endl;
+//        e_diff = e_hf - e_last;
+//        cout << "E_diff: " << e_diff << endl;
+//        D_old = D;
+//        e_last = e_hf;
+//
+//    } while ((iter < max_iter) || (fabs(e_diff) > conv));
 
-//    auto F = H;
-//    for (int iter = 1; iter < max_iter; iter++) {
-//        for (int i = 0; i < nao; i++) {
-//            for (int j = 0; j < nao; j++) {
-//                for (int k = 0; k < nao; k++) {
-//                    for (int l = 0; l < nao; l++) {
-//                        int ij = CompoundIndex(i, j);
-//                        int kl = CompoundIndex(k, l);
-//                        int ik = CompoundIndex(i, k);
-//                        int jl = CompoundIndex(j, l);
-//                        F(i, j) += D0(k, l) * (2 * two_e(CompoundIndex(ij, kl)) - two_e(CompoundIndex(ik, jl)));
-//                    }
-//                }
-//            }
-//        }
-//    }
+    // SCF Loop
+    int iter = 0;
+    double e_diff;
+    do {
+        auto ehf_last = e_hf;
+        auto D_last = D;
+        ++iter;
+        // New Fock Matrix
+        auto F = fock_build(Hcore, D_last, two_e);
+
+        // Orthogonalize
+        F = SOM.transpose() * F * SOM;
+
+        // Diagonalize
+        Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> solver2(F);
+        auto C_n = solver2.eigenvectors();
+        auto eps_n = solver2.eigenvalues();
+
+        // Transform
+        auto C = SOM * C_n;
+
+        // New Density Matrix
+        auto D = build_density(C, nocc);
+
+        // New HF energy
+        e_hf = scf_energy(D, Hcore, F);
+
+        // Energy difference
+        e_diff = e_hf - ehf_last;
+
+        if (iter == 1)
+            std::cout <<
+                      "\n\n Iter        E(elec)              E(tot)               Delta(E)\n";
+        printf(" %02d %20.12f %20.12f %20.12f\n", iter, e_hf, e_hf + enuc, e_diff);
+
+    } while (((fabs(e_diff) > conv)) && (iter < max_iter));
+
 
 }
+// Function Definitions
 
 double hartree_fock::read_enuc(std::string int_path)
 // Reading nuclear repulsion energy
@@ -202,4 +225,72 @@ Eigen::MatrixXd hartree_fock::read_2e_ints(std::string int_path, std::string int
     }
     return two_e;
 }
+hartree_fock::diag_results hartree_fock::Diag(Eigen::MatrixXd M, diag_results) {
+    diag_results results;
+    Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> solver(M);
+    results.evecs = solver.eigenvectors();
+    results.evals = solver.eigenvalues();
+    return results;
+}
 
+
+hartree_fock::diag_results hartree_fock::Diag_M(Eigen::MatrixXd M, diag_results) {
+    int num = M.rows();
+    diag_results results;
+    Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> solver(M);
+    results.evecs = solver.eigenvectors();
+    auto evals_c= solver.eigenvalues();
+    results.evals = Eigen::MatrixXd::Zero(num, num);
+    for(int i=0; i < num; i++){
+        for(int j=0; j < num; j++){
+            if(i==j)
+                results.evals(i, i) = evals_c(i);
+            else
+                results.evals(i, j) = 0;
+        }
+    }
+    return results;
+}
+
+Eigen::MatrixXd hartree_fock::build_density(Eigen::MatrixXd Coeff, int nocc) {
+    Eigen::MatrixXd D = Eigen::MatrixXd::Zero(nao, nao);
+    for(int i = 0; i < nao; i++){
+        for(int j =0; j < nao; j++){
+            // Sum over occupied orbitals
+            for(int m =0; m < nocc; m++){
+                D(i, j) += Coeff(i, m) * Coeff(j, m);
+            }
+        }
+    }
+    return D;
+}
+
+double hartree_fock::scf_energy(Eigen::MatrixXd D, Eigen::MatrixXd H,  Eigen::MatrixXd F)
+{
+    double e_hf = 0;
+    for(int i=0; i < nao; i++){
+        for(int j=0; j < nao; j++){
+            e_hf += D(i, j) * (H(i, j) + F (i, j));
+        }
+    }
+    return e_hf;
+}
+
+Eigen::MatrixXd hartree_fock::fock_build(Eigen::MatrixXd H, Eigen::MatrixXd D, Eigen::MatrixXd two_e)
+{
+    auto F = H;
+    for (int i = 0; i < nao; i++) {
+        for (int j = 0; j < nao; j++) {
+            for (int k = 0; k < nao; k++) {
+                for (int l = 0; l < nao; l++) {
+                    int ij = CompoundIndex(i, j);
+                    int kl = CompoundIndex(k, l);
+                    int ik = CompoundIndex(i, k);
+                    int jl = CompoundIndex(j, l);
+                    F(i, j) += D(k, l) * (2 * two_e(CompoundIndex(ij, kl)) - two_e(CompoundIndex(ik, jl)));
+                }
+            }
+        }
+    }
+    return F;
+}

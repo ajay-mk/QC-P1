@@ -23,6 +23,13 @@ public:
     Eigen::MatrixXd H;
     double hf_energy;
 
+    // Functions
+    struct diag_results{Eigen::MatrixXd evecs; Eigen::MatrixXd evals;};
+    diag_results Diag_M(Eigen::MatrixXd M, diag_results);
+    diag_results Diag(Eigen::MatrixXd M, diag_results);
+    Eigen::MatrixXd build_density(Eigen::MatrixXd Coeff, int nocc);
+    double scf_energy(Eigen::MatrixXd D, Eigen::MatrixXd H, Eigen::MatrixXd F);
+    Eigen::MatrixXd fock_build(Eigen::MatrixXd H, Eigen::MatrixXd D, Eigen::MatrixXd two_e);
 
 private:
     double nelectrons;
