@@ -11,4 +11,4 @@
 
 ### Functions
 
-- Hartree-Fock (Not completed)
+- Hartree-Fock
