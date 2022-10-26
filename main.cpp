@@ -29,6 +29,8 @@ int main(int argc, char *argv[]) {
   double enuc = read_enuc(int_path);
   cout << "\tNuclear repulsion energy" << endl << enuc << " Eh" << endl << endl;
 
+  //Note: All the integrals are read in AO basis
+
   // Reading 1e integrals
   Eigen::Matrix<double, nao, nao> S = read_1e_ints(int_path, "/overlap.dat");
   cout << "\tOverlap Integrals" << endl << S << endl;
@@ -40,8 +42,8 @@ int main(int argc, char *argv[]) {
   cout << "\tNuclear Attraction Integrals" << endl << V << endl;
   cout << endl;
   // Forming Core Hamiltonian
-  auto Hcore = T + V;
-  cout << "\tCore Hamiltonian" << endl << Hcore << endl;
+  auto Hcore_ao = T + V;
+  cout << "\tCore Hamiltonian" << endl << Hcore_ao << endl;
   cout << endl;
 
   // Reading 2-e integral
@@ -57,36 +59,38 @@ int main(int argc, char *argv[]) {
   for (int i = 0; i < S.rows(); i++) {
     S_evals(i, i) = pow(S_evals(i, i), -0.5); // Square root of S_evals
   }
-  auto SOM = S_evecs * S_evals * S_evecs.transpose();
+
+  auto SOM_oao = S_evecs * S_evals * S_evecs.transpose();
   cout << "\tSymmetric Orthogonalization Matrix" << endl;
-  cout << SOM << endl;
+  cout << SOM_oao << endl;
   cout << endl;
+  // SOM is in Orthogonal AO (OAO) basis
 
   // Building and Printing Initial Fock Matrix - Using Core Hamiltonian
-  auto F = SOM.transpose() * Hcore * SOM;
+  auto F_oao = SOM_oao.transpose() * Hcore_ao * SOM_oao;
   cout << "\tInitial (Guess) Fock Matrix" << endl;
-  cout << F << endl;
+  cout << F_oao << endl;
 
   // Diagonalizing Initial Fock Matrix
   diag_results F_Diag;
-  F_Diag = Diag(F);
+  F_Diag = Diag(F_oao);
   auto C_oao = F_Diag.evecs;
   auto eps = F_Diag.evals;
 
   // Transformation of Eigenvectors into original AO basis
-  auto C = SOM * C_oao;
+  auto C_mo = SOM_oao * C_oao;
   cout << endl;
   cout << "\tInitial Coefficient Matrix" << endl;
-  cout << C << endl;
+  cout << C_mo << endl;
 
   // Building and Printing Initial Density Matrix
-  Eigen::MatrixXd D = build_density(C, nocc);
+  Eigen::MatrixXd D_ao = build_density(C_mo, nocc);
   cout << endl;
   cout << "\tInitial (Guess) Density Matrix" << endl;
-  cout << D << endl;
+  cout << D_ao << endl;
 
   // Computing Initial SCF energy
-  double e_hf0 = scf_energy(D, Hcore, Hcore);
+  double e_hf0 = scf_energy(D_ao, Hcore_ao, Hcore_ao);
 
   cout << endl;
   cout << "From Initial Guess: " << endl;
@@ -109,27 +113,27 @@ int main(int argc, char *argv[]) {
           auto ehf_last = e_hf;
 
           // New Fock Matrix
-          auto F_ = fock_build(Hcore, D, two_e);
+          auto F_ao = fock_build(Hcore_ao, D_ao, two_e);
           // Orthogonalize
-          auto F = SOM.transpose() * F_ * SOM;
+          auto F_oao = SOM_oao.transpose() * F_ao * SOM_oao;
           if(iter ==1)
-              cout << "Fock Matrix" << endl << F << endl << endl;
+              cout << "Fock Matrix" << endl << F_oao << endl << endl;
 
           // Diagonalize
           diag_results Fn_diag;
-          Fn_diag = Diag(F);
-          auto C_n = Fn_diag.evecs;
+          Fn_diag = Diag(F_oao);
+          C_oao = Fn_diag.evecs;
           auto eps_n = Fn_diag.evals;
 
           // Transform
-          auto C = SOM * C_n;
+          auto C_mo = SOM_oao * C_oao;
 
           // New Density Matrix
-          D = build_density(C, nocc);
+          D_ao = build_density(C_mo, nocc);
           //cout << "Testing Density" << endl << D << endl << endl;
 
           // New HF energy
-          e_hf = scf_energy(D, Hcore, F_);
+          e_hf = scf_energy(D_ao, Hcore_ao, F_ao);
 
           // Energy difference
           e_diff = abs(e_hf - ehf_last);
