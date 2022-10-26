@@ -32,7 +32,7 @@ int CompoundIndex(int a, int b, int c, int d) {
 
 // Function Definitions
 
-double read_enuc(std::string int_path)
+double read_enuc(const std::string& int_path)
 // Reading nuclear repulsion energy
 // Expecting 'enuc.dat' at int_path
 {
@@ -46,7 +46,7 @@ double read_enuc(std::string int_path)
     return num;
 }
 
-Eigen::MatrixXd read_1e_ints(std::string int_path, std::string int_file)
+Eigen::MatrixXd read_1e_ints(const std::string& int_path, const std::string& int_file)
 {
     Eigen::MatrixXd one_e_matrix = Eigen::MatrixXd::Zero(nao, nao);
     std::string filename = int_path + int_file;
@@ -62,7 +62,7 @@ Eigen::MatrixXd read_1e_ints(std::string int_path, std::string int_file)
 }
 // We have four-dimensional matrix of 2e-integrals, because of the eight-fold symmetry
 // we only need the lower triangle and this can be stored into a column matrix
-Eigen::MatrixXd read_2e_ints(std::string int_path, std::string int_file)
+Eigen::MatrixXd read_2e_ints(const std::string& int_path, const std::string& int_file)
 {
     std::string filename = int_path + int_file;
     // Here we use the compound indices defined earlier
@@ -81,7 +81,7 @@ Eigen::MatrixXd read_2e_ints(std::string int_path, std::string int_file)
     }
     return two_e;
 }
-diag_results Diag(Eigen::MatrixXd M) {
+diag_results Diag(const Eigen::MatrixXd& M) {
     diag_results results;
     Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> solver(M);
     results.evecs = solver.eigenvectors();
@@ -90,15 +90,14 @@ diag_results Diag(Eigen::MatrixXd M) {
 }
 
 
-diag_results Diag_M(Eigen::MatrixXd M) {
-    int num = M.rows();
+diag_results Diag_M(const Eigen::MatrixXd& M) {
     diag_results results;
     Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> solver(M);
     results.evecs = solver.eigenvectors();
     auto evals_c= solver.eigenvalues();
-    results.evals = Eigen::MatrixXd::Zero(num, num);
-    for(int i=0; i < num; i++){
-        for(int j=0; j < num; j++){
+    results.evals = Eigen::MatrixXd::Zero(M.rows(), M.rows());
+    for(int i=0; i < M.rows(); i++){
+        for(int j=0; j < M.rows(); j++){
             if(i==j)
                 results.evals(i, i) = evals_c(i);
             else
@@ -108,7 +107,7 @@ diag_results Diag_M(Eigen::MatrixXd M) {
     return results;
 }
 
-Eigen::MatrixXd build_density(Eigen::MatrixXd Coeff, int nocc) {
+Eigen::MatrixXd build_density(const Eigen::MatrixXd& Coeff, int nocc) {
     Eigen::MatrixXd D = Eigen::MatrixXd::Zero(nao, nao);
     for(int i = 0; i < nao; i++){
         for(int j =0; j < nao; j++){
@@ -132,7 +131,7 @@ double scf_energy(const Eigen::MatrixXd& Density, const Eigen::MatrixXd& H, cons
     return e_hf;
 }
 
-Eigen::MatrixXd fock_build(Eigen::MatrixXd H, Eigen::MatrixXd Density, Eigen::MatrixXd two_e)
+Eigen::MatrixXd fock_build(const Eigen::MatrixXd& H, const Eigen::MatrixXd& Density, const Eigen::MatrixXd& two_e)
 {
     auto F = H;
     for (int i = 0; i < nao; i++) {

@@ -95,12 +95,12 @@ int main(int argc, char *argv[]) {
 
   // SCF Loop Parameters
   const int max_iter = 100;
-  const double conv = 1e-10;
+  const double conv = 1e-12;
 
   // SCF Loop
 
       int iter = 0;
-      double e_diff = 0;
+      double e_diff;
       double e_hf = e_hf0;
       do {
 
@@ -134,12 +134,15 @@ int main(int argc, char *argv[]) {
           // Energy difference
           e_diff = abs(e_hf - ehf_last);
 
+
           if (iter == 1)
               std::cout <<
                         "\n\n Iter        E(elec)              E(tot)                Delta(E)\n";
-          printf(" %02d %20.12f %20.12f %20.12f\n", iter, e_hf, e_hf + enuc,
-          e_diff);
-      } while (((fabs(e_diff) > conv)) && (iter < max_iter));
+          printf(" %02d %20.12f %20.12f %20.12f\n", iter, e_hf, e_hf + enuc,e_diff);
+      } while ((fabs(e_diff) > conv) && (iter < max_iter));
+
+      cout << endl
+           << "Hartree Fock Energy = " << e_hf + enuc << " Eh" << endl;
 
   return 0;
 }
